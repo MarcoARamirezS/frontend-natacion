@@ -14,13 +14,13 @@ export default defineNuxtPlugin((nuxtApp) => {
         light: {
           dark: false,
           colors: {
-            primary: '#2196F3',
-            secondary: '#1976D2',
-            accent: '#82B1FF',
+            primary: '#4ED7F1',   // Color principal (cyan suave)
+            secondary: '#6FE6FC', // Alternativo, más brillante
+            accent: '#A8F1FF',    // Color para destacar elementos
+            warning: '#FFFA8D',   // Amarillo suave
             error: '#FF5252',
-            info: '#2196F3',
+            info: '#4ED7F1',
             success: '#4CAF50',
-            warning: '#FFC107',
           },
         },
       },

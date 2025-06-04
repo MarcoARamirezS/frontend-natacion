@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <menu-lateral />
+    <MenuIzquierdo />
     <v-main>
       <slot />
     </v-main>
@@ -8,5 +8,5 @@
 </template>
 
 <script setup>
-import menuLateral from '@/components/ui/menuLateral.vue'
+import MenuIzquierdo from '~/components/ui/MenuIzquierdo.vue';
 </script>

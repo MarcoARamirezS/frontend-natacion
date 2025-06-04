@@ -16,6 +16,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'guest'
+})
+
 const usuario = ref('')
 const password = ref('')
 const { login } = useAuth()
@@ -29,3 +33,4 @@ const handleLogin = async () => {
   }
 }
 </script>
+

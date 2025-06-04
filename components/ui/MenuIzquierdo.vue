@@ -1,6 +1,6 @@
 <template>
   <v-navigation-drawer app permanent>
-    <v-list>
+    <v-list class="d-flex flex-column h-100">
       <v-list-item
         title="Dashboard"
         to="/dashboard"
@@ -15,6 +15,7 @@
         :active="$route.path === '/dashboard/users'"
         link
       />
+      <v-spacer />
       <v-list-item
         title="Salir"
         prepend-icon="mdi-logout"
