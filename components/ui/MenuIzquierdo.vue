@@ -1,55 +1,95 @@
 <template>
-  <v-navigation-drawer app permanent color="#E0F7FA">
-    <v-list class="d-flex flex-column h-100">
-      <template v-for="(item, i) in filteredMenu" :key="i">
-        <v-list-item
-          v-if="!item.children"
-          :title="item.title"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :active="$route.path === item.to"
-          link
-        />
+  <ClientOnly>
+    <v-navigation-drawer
+      v-model="drawer"
+      app
+      :temporary="mobile"
+      :permanent="!mobile"
+      color="#E0F7FA"
+    >
+      <v-list class="d-flex flex-column h-100">
 
-        <v-list-group
-          v-else
-          :value="openGroups.includes(item.title)"
-          :prepend-icon="item.icon"
-          no-action
-        >
-          <template #activator="{ props }">
-            <v-list-item v-bind="props" :title="item.title" />
+        <!-- Usuario -->
+        <v-list-item class="px-4 pt-4 pb-2">
+          <v-avatar :color="avatarColor" size="40">
+            <v-icon dark>{{ avatarIcon }}</v-icon>
+          </v-avatar>
+          <div class="ml-3">
+            <v-list-item-title class="font-weight-bold text-subtitle-1">
+              {{ nombreCompleto }}
+            </v-list-item-title>
+            <v-list-item-subtitle class="text-caption">
+              {{ user?.telefono || 'Sin teléfono' }}
+            </v-list-item-subtitle>
+          </div>
+        </v-list-item>
+
+        <v-divider/>
+
+        <!-- Menú -->
+        <template v-for="(item, i) in filteredMenu" :key="i">
+          <v-list-item
+            v-if="!item.children"
+            :title="item.title"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :active="$route.path === item.to"
+            link
+            @click="closeDrawerOnMobile"
+          />
+
+          <v-list-group
+            v-else
+            :value="openGroups.includes(item.title)"
+            :prepend-icon="item.icon"
+            no-action
+          >
+            <template #activator="{ props }">
+              <v-list-item v-bind="props" :title="item.title" />
+            </template>
+
+            <v-list-item
+              v-for="(child, j) in item.children"
+              :key="j"
+              :title="child.title"
+              :to="child.to"
+              :prepend-icon="child.icon"
+              :active="$route.path === child.to"
+              link
+              @click="closeDrawerOnMobile"
+            />
+          </v-list-group>
+        </template>
+
+        <v-spacer />
+
+        <!-- Cerrar sesión -->
+        <v-list-item link class="mb-3" @click="logout">
+          <template #prepend>
+            <v-icon>mdi-logout</v-icon>
           </template>
 
-          <v-list-item
-            v-for="(child, j) in item.children"
-            :key="j"
-            :title="child.title"
-            :to="child.to"
-            :prepend-icon="child.icon"
-            :active="$route.path === child.to"
-            link
-          />
-        </v-list-group>
-      </template>
-
-      <v-spacer />
-
-      <v-list-item
-        title="Salir"
-        prepend-icon="mdi-logout"
-        link
-        @click="logout"
-      />
-    </v-list>
-  </v-navigation-drawer>
+          <v-list-item-title>Cerrar sesión</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+  </ClientOnly>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import { useDisplay } from 'vuetify'
+import { useAuth } from '~/composables/useAuth'
+
 const { logout, user } = useAuth()
 
+const drawer = ref(true)
+const { mobile } = useDisplay()
 const openGroups = ref(['Configuración'])
+
+const closeDrawerOnMobile = () => {
+  if (mobile.value) drawer.value = false
+}
 
 const menuItems = [
   {
@@ -97,9 +137,52 @@ const menuItems = [
   },
 ]
 
+// Icono y color según el rol
+const avatarIcon = computed(() => {
+  const rol = user.value?.rol
+  switch (rol) {
+    case 'admin':
+      return 'mdi-shield-account'
+    case 'coach':
+      return 'mdi-whistle'
+    case 'alumno':
+      return 'mdi-school'
+    case 'soporte':
+      return 'mdi-lifebuoy'
+    case 'asistente':
+      return 'mdi-account-tie'
+    default:
+      return 'mdi-account'
+  }
+})
+
+const avatarColor = computed(() => {
+  const rol = user.value?.rol
+  switch (rol) {
+    case 'admin':
+      return 'deep-purple'
+    case 'coach':
+      return 'green'
+    case 'alumno':
+      return 'indigo'
+    case 'soporte':
+      return 'cyan'
+    case 'asistente':
+      return 'amber'
+    default:
+      return 'grey'
+  }
+})
+
+// Nombre completo del usuario
+const nombreCompleto = computed(() => {
+  const u = user.value || {}
+  return `${u.nombre || ''} ${u.apaterno || ''} ${u.amaterno || ''}`.trim()
+})
+
+
 const filteredMenu = computed(() => {
   const role = user.value?.rol
-  console.log('@@@ role => ', user)
   return menuItems
     .filter(item => item.roles.includes(role))
     .map(item => {
