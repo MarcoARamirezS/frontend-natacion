@@ -1,7 +1,8 @@
+import axios from 'axios'
+
 export const useAuth = () => {
   const token = useCookie('token')
   const user = useState('user', () => null)
-
   const axiosInstance = useNuxtApp().$axios
 
   const login = async (usuario: string, password: string) => {
@@ -10,9 +11,11 @@ export const useAuth = () => {
       token.value = res.data.token
       user.value = res.data.user
       return true
-    } catch (err) {
-      console.error(err)
-      return false
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        throw err 
+      }
+      throw new Error('Error desconocido al iniciar sesión')
     }
   }
 
@@ -23,8 +26,12 @@ export const useAuth = () => {
           Authorization: `Bearer ${token.value}`,
         },
       })
-    // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        throw err
+      }
+      throw new Error('Error desconocido al cerrar sesión')
+    }
     token.value = null
     user.value = null
     return navigateTo('/')

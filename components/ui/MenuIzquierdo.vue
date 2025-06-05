@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer app permanent>
+  <v-navigation-drawer app permanent color="#E0F7FA">
     <v-list class="d-flex flex-column h-100">
       <v-list-item
         title="Dashboard"
