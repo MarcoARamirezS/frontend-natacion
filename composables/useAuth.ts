@@ -1,15 +1,36 @@
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
+
+
+type Usuario = {
+  id: string
+  rol: 'admin' | 'coach' | string
+}
+
+type TokenPayload = {
+  id: string
+  rol: 'admin' | 'coach' | string
+  iat?: number
+  exp?: number
+}
 
 export const useAuth = () => {
-  const token = useCookie('token')
-  const user = useState('user', () => null)
+  const token = useCookie<string | null>('token')
+  const user = useState<Usuario | null>('user', () => null)
+
   const axiosInstance = useNuxtApp().$axios
 
   const login = async (usuario: string, password: string) => {
     try {
       const res = await axiosInstance.post('/users/login', { usuario, password })
       token.value = res.data.token
-      user.value = res.data.user
+
+      const decoded = jwtDecode<TokenPayload>(res.data.token)
+      user.value = {
+        id: decoded.id,
+        rol: decoded.rol,
+      }
+
       return true
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
