@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import ConfirmDialog from './ConfirmDialog.vue' // ajusta la ruta si es necesario
+
+const dialogoConfirmacion = ref(null)
 
 const props = defineProps({
   jornadas: Array,
@@ -28,7 +31,7 @@ function estaEnRango(hora, horaInicio, horaFin) {
   return hm >= toMin(horaInicio) && hm < toMin(horaFin)
 }
 
-function seleccionarCelda(dia, hora) {
+async function seleccionarCelda(dia, hora) {
   if (!seleccion.value.inicio) {
     seleccion.value.dia = dia
     seleccion.value.inicio = hora
@@ -55,9 +58,11 @@ function seleccionarCelda(dia, hora) {
       return
     }
 
-    if (confirm(`¿Deseas agregar el rango de ${hi} a ${hf} en ${dia}?`)) {
+    const confirmado = await dialogoConfirmacion.value.abrir()
+    if (confirmado) {
       emit('nuevo-rango', nueva)
     }
+
 
     seleccion.value = { dia: null, inicio: null, fin: null }
   }
@@ -66,11 +71,13 @@ function seleccionarCelda(dia, hora) {
 
 <template>
   <div>
-    <!-- Alertas UX -->
+    <!-- Alertas UX Mejoradas -->
     <v-alert
-      type="info"
       border="start"
-      variant="tonal"
+      variant="elevated"
+      elevation="2"
+      color="blue darken-3"
+      text-color="white"
       class="mb-4"
       v-if="!seleccion.inicio"
     >
@@ -78,9 +85,11 @@ function seleccionarCelda(dia, hora) {
     </v-alert>
 
     <v-alert
-      type="warning"
       border="start"
-      variant="tonal"
+      variant="elevated"
+      elevation="2"
+      color="orange darken-2"
+      text-color="black"
       class="mb-4"
       v-else-if="seleccion.inicio && !seleccion.fin"
     >
@@ -110,6 +119,12 @@ function seleccionarCelda(dia, hora) {
         </tr>
       </tbody>
     </table>
+    <ConfirmDialog
+      ref="dialogoConfirmacion"
+      :titulo="'Eliminar empleado'"
+      :mensaje="'¿Estás seguro que deseas agregar el rango?'"
+    />
+
   </div>
 </template>
 

@@ -51,7 +51,7 @@ onMounted(() => {
   <v-card class="pa-4">
     <v-card-title class="d-flex justify-between align-center">
       Configurar Jornadas
-      <v-btn color="secondary" @click="dialogEditar = true">
+      <v-btn color="secondary" class="ml-2" @click="dialogEditar = true">
         Editar Rangos
       </v-btn>
     </v-card-title>
@@ -67,7 +67,7 @@ onMounted(() => {
       <!-- Header con título y botón de cerrar alineado a la derecha -->
       <v-card-title class="d-flex justify-between align-center">
         <span class="text-h6">Editar Rangos Actuales</span>
-        <v-btn icon @click="dialogEditar = false" class="ml-auto">
+        <v-btn icon class="ml-auto" @click="dialogEditar = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
