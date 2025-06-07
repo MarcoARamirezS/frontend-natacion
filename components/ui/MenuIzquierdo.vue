@@ -1,30 +1,35 @@
 <template>
   <ClientOnly>
     <v-navigation-drawer
-      v-model="drawer"
+      :model-value="drawer"
       app
       :temporary="mobile"
       :permanent="!mobile"
       color="#E0F7FA"
+      @update:model-value="$emit('update:drawer', $event)"
     >
       <v-list class="d-flex flex-column h-100">
 
         <!-- Usuario -->
         <v-list-item class="px-4 pt-4 pb-2">
-          <v-avatar :color="avatarColor" size="40">
-            <v-icon dark>{{ avatarIcon }}</v-icon>
-          </v-avatar>
-          <div class="ml-3">
-            <v-list-item-title class="font-weight-bold text-subtitle-1">
-              {{ nombreCompleto }}
-            </v-list-item-title>
-            <v-list-item-subtitle class="text-caption">
-              {{ user?.telefono || 'Sin teléfono' }}
-            </v-list-item-subtitle>
-          </div>
+          <v-row no-gutters align="center">
+            <v-col cols="auto">
+              <v-avatar :color="avatarColor" size="48">
+                <v-icon dark>{{ avatarIcon }}</v-icon>
+              </v-avatar>
+            </v-col>
+            <v-col>
+              <v-list-item-title class="font-weight-bold text-subtitle-1">
+                {{ nombreCompleto }}
+              </v-list-item-title>
+              <v-list-item-subtitle class="text-caption">
+                {{ user?.telefono || 'Sin teléfono' }}
+              </v-list-item-subtitle>
+            </v-col>
+          </v-row>
         </v-list-item>
 
-        <v-divider/>
+        <v-divider />
 
         <!-- Menú -->
         <template v-for="(item, i) in filteredMenu" :key="i">
@@ -68,7 +73,6 @@
           <template #prepend>
             <v-icon>mdi-logout</v-icon>
           </template>
-
           <v-list-item-title>Cerrar sesión</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -77,18 +81,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useDisplay } from 'vuetify'
+import { computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
-const { logout, user } = useAuth()
+const props = defineProps({
+  drawer: Boolean,
+  mobile: Boolean,
+})
 
-const drawer = ref(true)
-const { mobile } = useDisplay()
+const emit = defineEmits(['update:drawer'])
+
+const { logout, user } = useAuth()
 const openGroups = ref(['Configuración'])
 
 const closeDrawerOnMobile = () => {
-  if (mobile.value) drawer.value = false
+  if (props.mobile) emit('update:drawer', false)
 }
 
 const menuItems = [
@@ -122,7 +129,7 @@ const menuItems = [
         roles: ['admin'],
       },
       {
-        title: 'Perfil',
+        title: 'Sistema', // ← cambiado aquí
         to: '/dashboard/perfil',
         icon: 'mdi-account',
         roles: ['admin'],
@@ -137,49 +144,34 @@ const menuItems = [
   },
 ]
 
-// Icono y color según el rol
 const avatarIcon = computed(() => {
   const rol = user.value?.rol
   switch (rol) {
-    case 'admin':
-      return 'mdi-shield-account'
-    case 'coach':
-      return 'mdi-whistle'
-    case 'alumno':
-      return 'mdi-school'
-    case 'soporte':
-      return 'mdi-lifebuoy'
-    case 'asistente':
-      return 'mdi-account-tie'
-    default:
-      return 'mdi-account'
+    case 'admin': return 'mdi-shield-account'
+    case 'coach': return 'mdi-whistle'
+    case 'alumno': return 'mdi-school'
+    case 'soporte': return 'mdi-lifebuoy'
+    case 'asistente': return 'mdi-account-tie'
+    default: return 'mdi-account'
   }
 })
 
 const avatarColor = computed(() => {
   const rol = user.value?.rol
   switch (rol) {
-    case 'admin':
-      return 'deep-purple'
-    case 'coach':
-      return 'green'
-    case 'alumno':
-      return 'indigo'
-    case 'soporte':
-      return 'cyan'
-    case 'asistente':
-      return 'amber'
-    default:
-      return 'grey'
+    case 'admin': return 'deep-purple'
+    case 'coach': return 'green'
+    case 'alumno': return 'indigo'
+    case 'soporte': return 'cyan'
+    case 'asistente': return 'amber'
+    default: return 'grey'
   }
 })
 
-// Nombre completo del usuario
 const nombreCompleto = computed(() => {
   const u = user.value || {}
   return `${u.nombre || ''} ${u.apaterno || ''} ${u.amaterno || ''}`.trim()
 })
-
 
 const filteredMenu = computed(() => {
   const role = user.value?.rol
