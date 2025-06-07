@@ -65,28 +65,52 @@ function seleccionarCelda(dia, hora) {
 </script>
 
 <template>
-  <table class="calendario-jornadas" border="1" cellspacing="0" cellpadding="4">
-    <thead>
-      <tr>
-        <th>Hora</th>
-        <th v-for="dia in diasSemana" :key="dia">{{ dia }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="hora in horas" :key="hora">
-        <td><strong>{{ hora }}</strong></td>
-        <td
-          v-for="dia in diasSemana"
-          :key="dia"
-          :class="{
-            marcado: props.jornadas.some(j => j.diaSemana === dia && estaEnRango(hora, j.horaInicio, j.horaFin)),
-            seleccionado: dia === seleccion.dia && (hora === seleccion.inicio || hora === seleccion.fin)
-          }"
-          @click="seleccionarCelda(dia, hora)"
-        ></td>
-      </tr>
-    </tbody>
-  </table>
+  <div>
+    <!-- Alertas UX -->
+    <v-alert
+      type="info"
+      border="start"
+      variant="tonal"
+      class="mb-4"
+      v-if="!seleccion.inicio"
+    >
+      Haz clic en una celda para iniciar un rango.
+    </v-alert>
+
+    <v-alert
+      type="warning"
+      border="start"
+      variant="tonal"
+      class="mb-4"
+      v-else-if="seleccion.inicio && !seleccion.fin"
+    >
+      Selecciona una segunda celda en el mismo día para terminar el rango.
+    </v-alert>
+
+    <!-- Tabla de selección -->
+    <table class="calendario-jornadas" border="1" cellspacing="0" cellpadding="4">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th v-for="dia in diasSemana" :key="dia">{{ dia }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="hora in horas" :key="hora">
+          <td><strong>{{ hora }}</strong></td>
+          <td
+            v-for="dia in diasSemana"
+            :key="dia"
+            :class="{
+              marcado: props.jornadas.some(j => j.diaSemana === dia && estaEnRango(hora, j.horaInicio, j.horaFin)),
+              seleccionado: dia === seleccion.dia && (hora === seleccion.inicio || hora === seleccion.fin)
+            }"
+            @click="seleccionarCelda(dia, hora)"
+          ></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <style scoped>
