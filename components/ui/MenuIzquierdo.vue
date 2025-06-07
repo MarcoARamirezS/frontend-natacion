@@ -129,19 +129,13 @@ const menuItems = [
         roles: ['admin'],
       },
       {
-        title: 'Sistema', // ← cambiado aquí
-        to: '/dashboard/perfil',
+        title: 'Sistema',
+        to: '/dashboard/sistema',
         icon: 'mdi-account',
         roles: ['admin'],
       },
     ],
-  },
-  {
-    title: 'Perfil',
-    to: '/dashboard/perfil',
-    icon: 'mdi-account',
-    roles: ['coach'],
-  },
+  }
 ]
 
 const avatarIcon = computed(() => {

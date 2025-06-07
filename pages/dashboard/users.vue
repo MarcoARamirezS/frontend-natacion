@@ -8,5 +8,7 @@ definePageMeta({
 </script>
 
 <template>
-  <users-table /> 
+  <v-container fluid class="ma-3">
+    <users-table />
+  </v-container>
 </template>

@@ -7,11 +7,15 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
   ],
 
-  css: ['vuetify/styles'],
+  css: [
+    'vuetify/styles',
+    'vue-cal/dist/vuecal.css'
+  ],
 
   build: {
     transpile: ['vuetify'],
   },
+  
 
   app: {
     head: {
