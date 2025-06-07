@@ -12,6 +12,7 @@ for (let h = 6; h <= 22; h++) {
 }
 
 const jornadas = ref([])
+const dialogEditar = ref(false) // 💬 Para abrir/cerrar el diálogo
 
 const cargarJornadas = async () => {
   try {
@@ -22,12 +23,8 @@ const cargarJornadas = async () => {
   }
 }
 
-const agregarJornada = () => {
-  jornadas.value.push({
-    diaSemana: 'Lunes',
-    horaInicio: '07:00',
-    horaFin: '10:00',
-  })
+const agregarRangoDirecto = (j) => {
+  jornadas.value.push({ ...j })
 }
 
 const eliminarJornada = (index) => {
@@ -52,63 +49,85 @@ onMounted(() => {
 
 <template>
   <v-card class="pa-4">
-    <v-card-title>Configurar Jornadas</v-card-title>
+    <v-card-title class="d-flex justify-between align-center">
+      Configurar Jornadas
+      <v-btn color="secondary" @click="dialogEditar = true">
+        Editar Rangos
+      </v-btn>
+    </v-card-title>
+
     <v-card-text>
-      <v-btn color="primary" class="mb-4" @click="agregarJornada">Agregar Jornada</v-btn>
-
-      <v-row
-        v-for="(j, i) in jornadas"
-        :key="i"
-        class="mb-2"
-        align="center"
-        style="justify-content: space-evenly;"
-        no-gutters
-      >
-        <v-col cols="3" class="d-flex justify-center">
-          <v-select
-            v-model="j.diaSemana"
-            :items="diasSemana"
-            label="Día Semana"
-            dense
-            hide-details
-          />
-        </v-col>
-        <v-col cols="3" class="d-flex justify-center">
-          <v-select
-            v-model="j.horaInicio"
-            :items="horas"
-            label="Hora Inicio"
-            dense
-            hide-details
-          />
-        </v-col>
-        <v-col cols="3" class="d-flex justify-center">
-          <v-select
-            v-model="j.horaFin"
-            :items="horas"
-            label="Hora Fin"
-            dense
-            hide-details
-          />
-        </v-col>
-        <v-col
-          cols="1"
-          class="d-flex align-center"
-          style="gap: 8px;"
-        >
-          <v-btn icon color="green" @click="guardarJornada(i)" class="mr-2">
-            <v-icon>mdi-content-save</v-icon>
-          </v-btn>
-          <v-btn icon color="red" @click="eliminarJornada(i)">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-
-
-      <v-divider class="my-6" />
-
-      <CalendarioSemana :jornadas="jornadas" />
+      <CalendarioSemana :jornadas="jornadas" @nuevo-rango="agregarRangoDirecto" />
     </v-card-text>
   </v-card>
+
+  <!-- 💬 Diálogo para edición -->
+  <v-dialog v-model="dialogEditar" width="900px">
+    <v-card>
+      <!-- Header con título y botón de cerrar alineado a la derecha -->
+      <v-card-title class="d-flex justify-between align-center">
+        <span class="text-h6">Editar Rangos Actuales</span>
+        <v-btn icon @click="dialogEditar = false" class="ml-auto">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-divider />
+
+      <v-card-text>
+        <!-- Renglones de jornadas con distribución space-evenly -->
+        <v-row
+          v-for="(j, i) in jornadas"
+          :key="i"
+          class="mb-2"
+          align="center"
+          no-gutters
+        >
+          <v-col cols="4">
+            <v-select
+              v-model="j.diaSemana"
+              :items="diasSemana"
+              label="Día Semana"
+              dense
+              hide-details
+            />
+          </v-col>
+
+          <v-col cols="3">
+            <v-select
+              v-model="j.horaInicio"
+              :items="horas"
+              label="Hora Inicio"
+              dense
+              hide-details
+            />
+          </v-col>
+
+          <v-col cols="3">
+            <v-select
+              v-model="j.horaFin"
+              :items="horas"
+              label="Hora Fin"
+              dense
+              hide-details
+            />
+          </v-col>
+
+          <v-col cols="2" class="d-flex justify-center">
+            <v-btn icon color="green" @click="guardarJornada(i)">
+              <v-icon>mdi-content-save</v-icon>
+            </v-btn>
+            <v-btn icon color="red" @click="eliminarJornada(i)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <v-card-actions class="justify-end">
+        <v-btn text @click="dialogEditar = false">Cerrar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
 </template>

@@ -2,31 +2,65 @@
 import { ref } from 'vue'
 
 const props = defineProps({
-  jornadas: {
-    type: Array,
-    required: true,
-  },
+  jornadas: Array,
 })
 
-const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const emit = defineEmits(['nuevo-rango'])
 
-// Horas de 7:00 a 22:00
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const horas = []
 for (let h = 7; h <= 22; h++) {
   horas.push(`${h.toString().padStart(2, '0')}:00`)
 }
 
-// Función para saber si hora actual está dentro del rango (horaInicio, horaFin)
+const seleccion = ref({
+  dia: null,
+  inicio: null,
+  fin: null,
+})
+
 function estaEnRango(hora, horaInicio, horaFin) {
-  // Convertimos a minutos para comparar
-  const toMin = (horaStr) => {
-    const [h, m] = horaStr.split(':').map(Number)
-    return h * 60 + m
+  const toMin = (h) => {
+    const [hh, mm] = h.split(':').map(Number)
+    return hh * 60 + mm
   }
-  const horaMin = toMin(hora)
-  const inicioMin = toMin(horaInicio)
-  const finMin = toMin(horaFin)
-  return horaMin >= inicioMin && horaMin < finMin
+  const hm = toMin(hora)
+  return hm >= toMin(horaInicio) && hm < toMin(horaFin)
+}
+
+function seleccionarCelda(dia, hora) {
+  if (!seleccion.value.inicio) {
+    seleccion.value.dia = dia
+    seleccion.value.inicio = hora
+  } else if (!seleccion.value.fin) {
+    if (dia !== seleccion.value.dia) {
+      alert('El rango debe estar dentro del mismo día.')
+      seleccion.value = { dia: null, inicio: null, fin: null }
+      return
+    }
+
+    seleccion.value.fin = hora
+
+    const [hi, hf] = [seleccion.value.inicio, seleccion.value.fin].sort()
+    const nueva = { diaSemana: dia, horaInicio: hi, horaFin: hf }
+
+    const conflicto = props.jornadas.some(j => {
+      if (j.diaSemana !== dia) return false
+      return !(hf <= j.horaInicio || hi >= j.horaFin) // si se sobreponen
+    })
+
+    if (conflicto) {
+      alert('Este rango se cruza con otro ya existente.')
+      seleccion.value = { dia: null, inicio: null, fin: null }
+      return
+    }
+
+    if (confirm(`¿Deseas agregar el rango de ${hi} a ${hf} en ${dia}?`)) {
+      emit('nuevo-rango', nueva)
+    }
+
+    seleccion.value = { dia: null, inicio: null, fin: null }
+  }
 }
 </script>
 
@@ -41,13 +75,14 @@ function estaEnRango(hora, horaInicio, horaFin) {
     <tbody>
       <tr v-for="hora in horas" :key="hora">
         <td><strong>{{ hora }}</strong></td>
-        <td v-for="dia in diasSemana" :key="dia"
-            :class="{
-              'marcado': props.jornadas.some(j => 
-                j.diaSemana.toLowerCase() === dia.toLowerCase() && 
-                estaEnRango(hora, j.horaInicio, j.horaFin)
-              )
-            }"
+        <td
+          v-for="dia in diasSemana"
+          :key="dia"
+          :class="{
+            marcado: props.jornadas.some(j => j.diaSemana === dia && estaEnRango(hora, j.horaInicio, j.horaFin)),
+            seleccionado: dia === seleccion.dia && (hora === seleccion.inicio || hora === seleccion.fin)
+          }"
+          @click="seleccionarCelda(dia, hora)"
         ></td>
       </tr>
     </tbody>
@@ -69,10 +104,12 @@ function estaEnRango(hora, horaInicio, horaFin) {
 }
 .calendario-jornadas td {
   height: 40px;
-  width: 12.5%; /* 8 columnas aprox */
-  border: 1px solid #ccc;
+  cursor: pointer;
 }
 .calendario-jornadas td.marcado {
-  background-color: #4caf50; /* verde */
+  background-color: #4caf50;
+}
+.calendario-jornadas td.seleccionado {
+  background-color: #ffc107;
 }
 </style>
