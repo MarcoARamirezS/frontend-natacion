@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import ConfirmDialog from './ConfirmDialog.vue' // ajusta la ruta si es necesario
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const dialogoConfirmacion = ref(null)
 
@@ -41,29 +41,22 @@ async function seleccionarCelda(dia, hora) {
       seleccion.value = { dia: null, inicio: null, fin: null }
       return
     }
-
     seleccion.value.fin = hora
-
     const [hi, hf] = [seleccion.value.inicio, seleccion.value.fin].sort()
     const nueva = { diaSemana: dia, horaInicio: hi, horaFin: hf }
-
     const conflicto = props.jornadas.some(j => {
       if (j.diaSemana !== dia) return false
-      return !(hf <= j.horaInicio || hi >= j.horaFin) // si se sobreponen
+      return !(hf <= j.horaInicio || hi >= j.horaFin)
     })
-
     if (conflicto) {
       alert('Este rango se cruza con otro ya existente.')
       seleccion.value = { dia: null, inicio: null, fin: null }
       return
     }
-
     const confirmado = await dialogoConfirmacion.value.abrir()
     if (confirmado) {
       emit('nuevo-rango', nueva)
     }
-
-
     seleccion.value = { dia: null, inicio: null, fin: null }
   }
 }
@@ -71,7 +64,6 @@ async function seleccionarCelda(dia, hora) {
 
 <template>
   <div>
-    <!-- Alertas UX Mejoradas -->
     <v-alert
       border="start"
       variant="elevated"
@@ -96,7 +88,6 @@ async function seleccionarCelda(dia, hora) {
       Selecciona una segunda celda en el mismo día para terminar el rango.
     </v-alert>
 
-    <!-- Tabla de selección -->
     <table class="calendario-jornadas" border="1" cellspacing="0" cellpadding="4">
       <thead>
         <tr>
@@ -119,12 +110,12 @@ async function seleccionarCelda(dia, hora) {
         </tr>
       </tbody>
     </table>
+
     <ConfirmDialog
       ref="dialogoConfirmacion"
-      :titulo="'Eliminar empleado'"
+      :titulo="'Horario Clases'"
       :mensaje="'¿Estás seguro que deseas agregar el rango?'"
     />
-
   </div>
 </template>
 

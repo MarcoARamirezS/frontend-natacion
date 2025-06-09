@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import CalendarioSemana from './CalendarioSemana.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 import { useNuxtApp } from '#app'
 
 const axios = useNuxtApp().$axios
@@ -12,7 +13,10 @@ for (let h = 6; h <= 22; h++) {
 }
 
 const jornadas = ref([])
-const dialogEditar = ref(false) // 💬 Para abrir/cerrar el diálogo
+const dialogEditar = ref(false)
+
+const confirmDialogRef = ref(null)
+const mensajeConfirmacion = ref('')
 
 const cargarJornadas = async () => {
   try {
@@ -23,17 +27,34 @@ const cargarJornadas = async () => {
   }
 }
 
-const agregarRangoDirecto = (j) => {
-  jornadas.value.push({ ...j })
+watch(dialogEditar, (nuevoValor) => {
+  if (nuevoValor) {
+    jornadas.value.sort((a, b) => {
+      return diasSemana.indexOf(a.diaSemana) - diasSemana.indexOf(b.diaSemana)
+    })
+  }
+})
+
+const agregarRangoDirecto = (nuevoRango) => {
+  jornadas.value.push({ ...nuevoRango })
 }
 
-const eliminarJornada = (index) => {
+const eliminarJornada = async (index) => {
+  const j = jornadas.value[index]
+  mensajeConfirmacion.value = `¿Deseas eliminar la jornada del ${j.diaSemana} de ${j.horaInicio} a ${j.horaFin}?`
+  const confirmado = await confirmDialogRef.value.abrir()
+  if (!confirmado) return
+
   jornadas.value.splice(index, 1)
 }
 
 const guardarJornada = async (index) => {
+  const j = jornadas.value[index]
+  mensajeConfirmacion.value = `¿Deseas guardar la jornada del ${j.diaSemana} de ${j.horaInicio} a ${j.horaFin}?`
+  const confirmado = await confirmDialogRef.value.abrir()
+  if (!confirmado) return
+
   try {
-    const j = jornadas.value[index]
     await axios.post('/jornadas/', j)
     alert(`Jornada guardada: ${j.diaSemana} ${j.horaInicio}-${j.horaFin}`)
   } catch (error) {
@@ -56,78 +77,49 @@ onMounted(() => {
       </v-btn>
     </v-card-title>
 
-    <v-card-text>
-      <CalendarioSemana :jornadas="jornadas" @nuevo-rango="agregarRangoDirecto" />
-    </v-card-text>
+    <CalendarioSemana
+      :jornadas="jornadas"
+      @nuevo-rango="async (nuevoRango) => {
+        agregarRangoDirecto(nuevoRango)
+        await guardarJornada(jornadas.length - 1)
+      }"
+    />
+
+    <v-dialog v-model="dialogEditar" max-width="800">
+      <v-card>
+        <v-card-title class="text-h6">
+          Editar Jornadas
+          <v-spacer />
+          <v-btn icon @click="dialogEditar = false"><v-icon>mdi-close</v-icon></v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-list>
+            <v-list-item
+              v-for="(j, index) in jornadas"
+              :key="index"
+              class="justify-between"
+            >
+              <div>
+                {{ j.diaSemana }}: {{ j.horaInicio }} - {{ j.horaFin }}
+              </div>
+              <v-btn
+                icon
+                color="red"
+                @click="eliminarJornada(index)"
+                title="Eliminar jornada"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <ConfirmDialog
+      ref="confirmDialogRef"
+      :titulo="'Confirmar acción'"
+      :mensaje="mensajeConfirmacion"
+    />
   </v-card>
-
-  <!-- 💬 Diálogo para edición -->
-  <v-dialog v-model="dialogEditar" width="900px">
-    <v-card>
-      <!-- Header con título y botón de cerrar alineado a la derecha -->
-      <v-card-title class="d-flex justify-between align-center">
-        <span class="text-h6">Editar Rangos Actuales</span>
-        <v-btn icon class="ml-auto" @click="dialogEditar = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-
-      <v-divider />
-
-      <v-card-text>
-        <!-- Renglones de jornadas con distribución space-evenly -->
-        <v-row
-          v-for="(j, i) in jornadas"
-          :key="i"
-          class="mb-2"
-          align="center"
-          no-gutters
-        >
-          <v-col cols="4">
-            <v-select
-              v-model="j.diaSemana"
-              :items="diasSemana"
-              label="Día Semana"
-              dense
-              hide-details
-            />
-          </v-col>
-
-          <v-col cols="3">
-            <v-select
-              v-model="j.horaInicio"
-              :items="horas"
-              label="Hora Inicio"
-              dense
-              hide-details
-            />
-          </v-col>
-
-          <v-col cols="3">
-            <v-select
-              v-model="j.horaFin"
-              :items="horas"
-              label="Hora Fin"
-              dense
-              hide-details
-            />
-          </v-col>
-
-          <v-col cols="2" class="d-flex justify-center">
-            <v-btn icon color="green" @click="guardarJornada(i)">
-              <v-icon>mdi-content-save</v-icon>
-            </v-btn>
-            <v-btn icon color="red" @click="eliminarJornada(i)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-
-      <v-card-actions class="justify-end">
-        <v-btn text @click="dialogEditar = false">Cerrar</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
 </template>
