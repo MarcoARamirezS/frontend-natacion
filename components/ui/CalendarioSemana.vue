@@ -1,14 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 
-const dialogoConfirmacion = ref(null)
-
 const props = defineProps({
-  jornadas: Array,
+  jornadas: {
+    type: Array,
+    required: true
+  }
 })
 
 const emit = defineEmits(['nuevo-rango'])
+
+const dialogoConfirmacion = ref(null)
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const horas = []
